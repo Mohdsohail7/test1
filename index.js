@@ -146,8 +146,81 @@ const authorsData = [
     } catch (error) {
         return res.status(500).json({ error: error.message });
     }
+  });
+
+
+  async function getAllAuthor() {
+    const authors = await Author.findAll();
+
+    if (!authors) return {}
+
+    return { authors };
+  }
+
+  app.get("/authors", async (req, res) => {
+    try {
+        const result = await getAllAuthor();
+        if (!result) {
+            return res.status(404).json({ message: "Authors not found."});
+        }
+        return res.status(200).json(result);
+    } catch (error) {
+        return res.status(500).json({ error: error.message });
+    }
   })
 
+
+  // add new author
+  async function addNewAuthor(authorData) {
+    const newAuthor = await Author.create(authorData);
+    return {newAuthor};
+  }
+  app.post("/author/new", async (req, res) => {
+    const { name, birthdate, email } = req.body;
+    // validate body data
+    if (!name || !birthdate || !email) {
+        return res.status(400).json({ message: "Author data is missing."});
+    }
+    try {
+        const result = await addNewAuthor({ name, birthdate, email })
+        if (!result) {
+            return res.status(400).json({ message: "Author not added."});
+        }
+        return res.status(200).json(result);
+
+    } catch (error) {
+        return res.status(500).json({ error: error.message });
+    }
+  })
+
+  // 3. **Get the authors by genre ID**:
+    // - **Endpoint**: `/genres/:genresId/authors`
+    // - **Description**: Return all Author name and Book title as per `genreId`
+    // - Response has only
+
+    async function fetchAuthorAndBookNameByGnereId(genresId) {
+        const genre = await Genre.findAll({
+            where: { id: genresId}
+        })
+        console.log("genre-->", genre);
+       // return { authors };
+    }
+    app.get("/genres/:genresId/authors", async (req, res) => {
+        const genresId = parseInt(req.params.genresId);
+        // validate id
+        if (!genresId) {
+            return res.status(400).json({ message: "Invalid genres Id."});
+        }
+        try {
+            const result = fetchAuthorAndBookNameByGnereId(genresId);
+            if (!result) {
+                return res.status(404).json({ message: "Author not found."});
+            }
+            return res.status(200).json(result);
+        } catch (error) {
+            return res.status(500).json({ error: error.message });
+        }
+    })
 
 const port = 3000;
 app.listen(port, () => {
